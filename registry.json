@@ -1,0 +1,23 @@
+{
+  "_comment": "Surrogate worker registry. Add or remove entries freely — redeploy the orchestrator after any change. The `id` field is cosmetic; it appears in logs and the `handled_by` field of API responses.",
+  "surrogates": [
+    {
+      "id": "surrogate-1",
+      "url": "https://llm-search-surrogate-1.YOUR_SUBDOMAIN.workers.dev",
+      "region": "auto",
+      "enabled": true
+    },
+    {
+      "id": "surrogate-2",
+      "url": "https://llm-search-surrogate-2.YOUR_SUBDOMAIN.workers.dev",
+      "region": "auto",
+      "enabled": true
+    },
+    {
+      "id": "surrogate-3",
+      "url": "https://llm-search-surrogate-3.YOUR_SUBDOMAIN.workers.dev",
+      "region": "auto",
+      "enabled": true
+    }
+  ]
+}

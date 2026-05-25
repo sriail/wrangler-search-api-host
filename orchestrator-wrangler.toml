@@ -1,0 +1,119 @@
+# =============================================================
+#  wrangler.toml — Orchestrator (Main Worker)
+#  Worker name: llm-search-orchestrator
+#
+#  Place this file at:
+#    orchestrator/
+#    ├── wrangler.toml      ← this file
+#    ├── main-worker.js
+#    └── registry.json      ← bundled automatically at deploy time
+#
+#  Deploy:   wrangler deploy
+#  Dev:      wrangler dev
+#  Secrets:  wrangler secret put INTERNAL_SECRET
+# =============================================================
+
+# ── Identity ─────────────────────────────────────────────────
+name               = "llm-search-orchestrator"
+main               = "main-worker.js"
+compatibility_date = "2024-09-23"
+
+# workers_dev = true publishes to <name>.<account>.workers.dev
+# Set to false and add [[routes]] below for a custom domain.
+workers_dev        = true
+
+# ── ES Module format (required — do not remove) ──────────────
+# Wrangler v3 defaults to modules; this makes it explicit.
+# It also enables the `import registryFile from "./registry.json"`
+# static JSON bundling used in main-worker.js.
+
+# ── KV Namespace (optional — dynamic registry fallback) ──────
+#
+# Used when registry.json has zero enabled surrogates and you
+# want to push surrogate URL changes without redeploying.
+#
+# Setup steps:
+#   1. Create the namespace:
+#        wrangler kv:namespace create REGISTRY_KV
+#      Copy the returned `id` value into the block below.
+#
+#   2. (Optional) Create a preview namespace for `wrangler dev`:
+#        wrangler kv:namespace create REGISTRY_KV --preview
+#      Copy the returned `id` into `preview_id` below.
+#
+#   3. Populate the key:
+#        wrangler kv:key put --namespace-id=<YOUR_ID> surrogates \
+#          '[{"id":"s1","url":"https://surrogate-1.YOUR.workers.dev","enabled":true}]'
+#
+#   4. Redeploy to pick up the new binding:
+#        wrangler deploy
+
+[[kv_namespaces]]
+binding    = "REGISTRY_KV"                       # accessed as env.REGISTRY_KV in code
+id         = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+# preview_id = "REPLACE_WITH_PREVIEW_KV_ID"     # uncomment for wrangler dev
+
+
+# ── Non-secret environment variables ─────────────────────────
+# These are visible in the Cloudflare dashboard — never put
+# secrets here. Use `wrangler secret put` for sensitive values.
+
+[vars]
+WORKER_ENV  = "production"   # informational; not used in logic
+WORKER_NAME = "orchestrator" # informational; not used in logic
+
+
+# ── Secrets ───────────────────────────────────────────────────
+# DO NOT put secret values in this file — they would be
+# committed to source control in plain text.
+#
+# Instead, run these commands once after each deploy:
+#
+#   wrangler secret put INTERNAL_SECRET
+#   # Paste a long random string when prompted, e.g.:
+#   #   openssl rand -hex 32
+#   #
+#   # This EXACT value must also be set on every Surrogate Worker.
+#   # Accessed in code as:  env.INTERNAL_SECRET
+#
+# To rotate the secret:
+#   wrangler secret put INTERNAL_SECRET          (orchestrator)
+#   wrangler secret put INTERNAL_SECRET --config surrogate-1/wrangler.toml
+#   wrangler secret put INTERNAL_SECRET --config surrogate-2/wrangler.toml
+#   # ... repeat for each surrogate
+
+
+# ── Custom Domain Routes (optional) ──────────────────────────
+# Uncomment and edit to serve this worker on your own domain
+# instead of the default <name>.<account>.workers.dev URL.
+# The zone must already exist in your Cloudflare account.
+#
+# [[routes]]
+# pattern   = "search-api.yourdomain.com/*"
+# zone_name = "yourdomain.com"
+
+
+# ── Observability ─────────────────────────────────────────────
+# Enables Workers Trace Events in the Cloudflare dashboard.
+# Requires a paid Workers plan.
+
+[observability]
+enabled = true
+
+
+# ── Placement (optional) ──────────────────────────────────────
+# "smart" places the worker close to your backend surrogates,
+# reducing latency between orchestrator → surrogate hops.
+# Remove this block if your surrogates are globally distributed.
+#
+# [placement]
+# mode = "smart"
+
+
+# ── Build (informational) ─────────────────────────────────────
+# Wrangler v3 bundles everything automatically including
+# registry.json. No custom build step is required.
+# If you add a build tool (esbuild, rollup) uncomment below:
+#
+# [build]
+# command = "npm run build"
